@@ -41,7 +41,7 @@ public class ScriptRunnerMain {
 			Connection mConnection = null;
 			Class.forName(driver);
 			mConnection = DriverManager.getConnection(url, userName, password);
-			ScriptRunner runner = new ScriptRunner(mConnection, false, false);
+			ScriptRunner runner = new ScriptRunner(mConnection, false, true);
 			runner.runScript(new BufferedReader(new FileReader(script)));
 		}catch(Exception e){
 			e.printStackTrace();
