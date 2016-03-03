@@ -24,23 +24,28 @@ import java.sql.DriverManager;
 public class ScriptRunnerMain {
 	
 	public static void main(String[] args) throws Exception{
-		if(args.length != 5){
-			throw new Exception("Arguments should be:\n"+
-					"1- driver\n"+
-					"2- url\n"+
-					"3- username\n"+
-					"4- password\n"+
-					"5- script");
+		try{
+			if(args.length != 5){
+				throw new Exception("Arguments should be:\n"+
+						"1- driver\n"+
+						"2- url\n"+
+						"3- username\n"+
+						"4- password\n"+
+						"5- script");
+			}
+			String driver = args[0];
+			String url = args[1];
+			String userName = args[2];
+			String password = args[3];
+			String script = args[4];
+			Connection mConnection = null;
+			Class.forName(driver);
+			mConnection = DriverManager.getConnection(url, userName, password);
+			ScriptRunner runner = new ScriptRunner(mConnection, false, false);
+			runner.runScript(new BufferedReader(new FileReader(script)));
+		}catch(Exception e){
+			e.printStackTrace();
+			System.exit(-1);
 		}
-		String driver = args[0];
-		String url = args[1];
-		String userName = args[2];
-		String password = args[3];
-		String script = args[4];
-		Connection mConnection = null;
-		Class.forName(driver);
-		mConnection = DriverManager.getConnection(url, userName, password);
-		ScriptRunner runner = new ScriptRunner(mConnection, false, false);
-		runner.runScript(new BufferedReader(new FileReader(script)));
 	}
 }
