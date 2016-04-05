@@ -49,7 +49,7 @@ public class ScriptRunner {
     private final Connection connection;
 
     private final boolean stopOnError;
-    private final boolean autoCommit;
+    private boolean autoCommit;
 
     @SuppressWarnings("UseOfSystemOutOrSystemErr")
     private PrintWriter logWriter = new PrintWriter(System.out);
@@ -100,13 +100,20 @@ public class ScriptRunner {
     public void runScript(Reader reader) throws IOException, SQLException {
         try {
             boolean originalAutoCommit = connection.getAutoCommit();
-            try {
-                if (originalAutoCommit != this.autoCommit) {
-                    connection.setAutoCommit(this.autoCommit);
-                }
-                runScript(connection, reader);
-            } finally {
-                connection.setAutoCommit(originalAutoCommit);
+            if (originalAutoCommit != this.autoCommit) {
+            	boolean autoCommitChg = true;
+            	try{
+            		connection.setAutoCommit(this.autoCommit);
+            	}catch(Exception e){
+            		autoCommitChg = false;
+            		this.autoCommit = originalAutoCommit;
+            	}
+            	runScript(connection, reader);
+            	if(autoCommitChg){
+            		connection.setAutoCommit(originalAutoCommit);
+            	}
+            }else{
+            	runScript(connection, reader);
             }
         } catch (IOException e) {
             throw e;
@@ -171,7 +178,11 @@ public class ScriptRunner {
         } catch (Exception e) {
             throw new IOException(String.format("Error executing '%s': %s", command, e.getMessage()), e);
         } finally {
-            conn.rollback();
+        	try{
+        		conn.rollback();
+        	} catch (Exception e) {
+        		println("Fail to rollback");
+        	}
             flush();
         }
     }
