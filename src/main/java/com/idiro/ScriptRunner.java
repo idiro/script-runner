@@ -101,17 +101,13 @@ public class ScriptRunner {
         try {
             boolean originalAutoCommit = connection.getAutoCommit();
             if (originalAutoCommit != this.autoCommit) {
-            	boolean autoCommitChg = true;
             	try{
             		connection.setAutoCommit(this.autoCommit);
             	}catch(Exception e){
-            		autoCommitChg = false;
+            		//Disable auto commit
             		this.autoCommit = originalAutoCommit;
             	}
             	runScript(connection, reader);
-            	if(autoCommitChg){
-            		connection.setAutoCommit(originalAutoCommit);
-            	}
             }else{
             	runScript(connection, reader);
             }
@@ -173,16 +169,20 @@ public class ScriptRunner {
             	this.execCommand(conn, command, lineReader);
             }
             if (!autoCommit) {
+            	println("Final commit.");
                 conn.commit();
+            }else{
+            	println("No Command to execute any more...");
             }
         } catch (Exception e) {
-            throw new IOException(String.format("Error executing '%s': %s", command, e.getMessage()), e);
-        } finally {
         	try{
+        		println("Error: "+e.getMessage()+", roll back.");
         		conn.rollback();
-        	} catch (Exception e) {
+        	} catch (Exception e1) {
         		println("Fail to rollback");
         	}
+            throw new IOException(String.format("Error executing '%s': %s", command, e.getMessage()), e);
+        } finally {
             flush();
         }
     }
@@ -193,9 +193,8 @@ public class ScriptRunner {
 
 		println(command);
 
-		boolean hasResults = false;
 		try {
-		    hasResults = statement.execute(command.toString());
+		    statement.execute(command.toString());
 		} catch (SQLException e) {
 		    final String errText = String.format("Error executing '%s' (line %d): %s", command, lineReader.getLineNumber(), e.getMessage());
 		    if (stopOnError) {
@@ -206,28 +205,12 @@ public class ScriptRunner {
 		}
 
 		if (autoCommit && !conn.getAutoCommit()) {
+			println("commit");
 		    conn.commit();
 		}
 
-		ResultSet rs = statement.getResultSet();
-		if (hasResults && rs != null) {
-		    ResultSetMetaData md = rs.getMetaData();
-		    int cols = md.getColumnCount();
-		    for (int i = 1; i <= cols; i++) {
-		        String name = md.getColumnLabel(i);
-		        print(name + "\t");
-		    }
-		    println("");
-		    while (rs.next()) {
-		        for (int i = 1; i <= cols; i++) {
-		            String value = rs.getString(i);
-		            print(value + "\t");
-		        }
-		        println("");
-		    }
-		}
-
 		try {
+			println("Close Statement...");
 		    statement.close();
 		} catch (Exception e) {
 		    // Ignore to workaround a bug in Jakarta DBCP

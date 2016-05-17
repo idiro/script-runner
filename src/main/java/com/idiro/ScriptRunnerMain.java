@@ -43,6 +43,9 @@ public class ScriptRunnerMain {
 			mConnection = DriverManager.getConnection(url, userName, password);
 			ScriptRunner runner = new ScriptRunner(mConnection, false, true);
 			runner.runScript(new BufferedReader(new FileReader(script)));
+			System.out.println("Close connection...");
+			mConnection.close();
+			System.exit(0);
 		}catch(Exception e){
 			e.printStackTrace();
 			System.exit(-1);
