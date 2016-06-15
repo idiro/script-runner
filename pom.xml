@@ -6,7 +6,21 @@
   <packaging>jar</packaging>
   <version>1.1</version>
   <name>script-runner</name>
-  <url>http://maven.apache.org</url>
+  <url>https://github.com/idiro</url>
+
+  <distributionManagement>
+      <repository>
+	  <id>archiva.idiro.com</id>
+	  <name>Idiro Release Repository</name>
+	  <url>http://archiva.idiro.com/repository/internal/</url>
+      </repository>
+  </distributionManagement>
+
+  <organization>
+      <name>Idiro Technologies</name>
+      <url>http://www.idiro.com</url>
+  </organization>
+
   <build>
       <plugins>
 	  <plugin>
